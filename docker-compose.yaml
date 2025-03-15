@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+    zipkin:
+      image: openzipkin/zipkin
+      container_name: zipkin
+      ports:
+        - "9411:9411"
+      networks:
+        - ticket-box
+
+    gateway-service:
+      image: openjdk:17-jdk-slim
+      container_name: ${SPRING_APPLICATION_NAME}
+      ports:
+        - "${SERVER_PORT}:${SERVER_PORT}"
+      env_file:
+        - .env
+      volumes:
+        - ./target/${JAR_FILE}:/app/${JAR_FILE}
+      restart: always
+      working_dir: /app
+      command: [ "java", "-jar", "${JAR_FILE}" ]
+      depends_on:
+        - zipkin
+      networks:
+        - ticket-box
+
+networks:
+  ticket-box:
+    external: true
+
